@@ -3,12 +3,12 @@ package com.wy.bean;
 import com.wy.util.SerializeTranscoder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import redis.clients.jedis.JedisCluster;
 
 import java.io.Serializable;
+import java.util.Base64;
 import java.util.List;
 
 /**
@@ -40,7 +40,7 @@ public class RedisQueue<T extends Serializable> {
         try {
             log.debug("push队列key："+qName+"，value："+t);
             byte[] valueByte = new SerializeTranscoder<Serializable>().serialize(t);
-            byte[] base64Byte = Base64.encodeBase64(valueByte);
+            byte[] base64Byte = Base64.getEncoder().encode(valueByte);
             String objectStr = new String(base64Byte);
             jedisCluster.lpush(qName,objectStr);
         } catch (Exception e) {
@@ -73,7 +73,7 @@ public class RedisQueue<T extends Serializable> {
                 result = resultList.get(1);
                 if(result!=null){
                     byte[] base64Byte = result.getBytes();
-                    byte[] oriByte = Base64.decodeBase64(base64Byte);
+                    byte[] oriByte = Base64.getDecoder().decode(base64Byte);
                     resultObject = new SerializeTranscoder<Serializable>().deserialize(oriByte);
                 }
             }
