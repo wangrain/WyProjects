@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bean:beans xmlns="http://www.springframework.org/schema/batch"
+            xmlns:bean="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+http://www.springframework.org/schema/batch
+http://www.springframework.org/schema/batch/spring-batch-3.0.xsd">
+
+    <bean:bean id="jobLauncher" class="org.springframework.batch.core.launch.support.SimpleJobLauncher">
+        <bean:property name="jobRepository" ref="jobRepository"/>
+    </bean:bean>
+
+    <bean:bean id="jobRepository"
+               class="org.springframework.batch.core.repository.support.MapJobRepositoryFactoryBean"/>
+
+    <bean:bean id="transactionManager"
+               class="org.springframework.batch.support.transaction.ResourcelessTransactionManager"/>
+
+    <job id="testJob">
+        <step id="firstStep" next="secondStep">
+            <tasklet ref="first" transaction-manager="transactionManager"></tasklet>
+        </step>
+        <step id="secondStep">
+            <tasklet ref="second" transaction-manager="transactionManager"></tasklet>
+        </step>
+    </job>
+
+    <bean:bean id="first" class="com.wy.batch.FirstStepTasklet">
+    </bean:bean>
+
+    <bean:bean id="second" class="com.wy.batch.SecondStepTasklet">
+    </bean:bean>
+
+</bean:beans>

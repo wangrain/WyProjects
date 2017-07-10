@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="timeServerHandler" class="com.wy.socket.handler.TimeServerHandler"/>
+    <bean id="localAddress" class="java.net.InetSocketAddress">
+        <constructor-arg value="23256" />
+    </bean>
+
+    <bean id="ioAcceptor" class="org.apache.mina.transport.socket.nio.NioSocketAcceptor"
+          init-method="bind" destroy-method="unbind">
+        <constructor-arg index="0" ref="tpte4io"></constructor-arg>
+        <constructor-arg index="1" ref="simpleIoProcessorPool"></constructor-arg>
+        <property name="handler" ref="timeServerHandler" />
+        <property name="defaultLocalAddress" ref="localAddress"/>
+        <property name="backlog" value="1000" />
+        <property name="filterChainBuilder" ref="filterChainBuilder" />
+    </bean>
+    <!-- 用于执行多线程并发 处理io线程池 -->
+    <bean id="tpte4io" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+        <property name="queueCapacity" value="5000" />
+        <property name="corePoolSize" value="20" />
+        <property name="maxPoolSize" value="50" />
+        <property name="keepAliveSeconds" value="300" />
+    </bean>
+
+    <!-- processor池定义，其中的NioProcessor用于监听读写事件 -->
+    <bean id="simpleIoProcessorPool" class="org.apache.mina.core.service.SimpleIoProcessorPool">
+        <constructor-arg index="0" value="org.apache.mina.transport.socket.nio.NioProcessor" />
+        <constructor-arg index="1" value="20" />
+    </bean>
+
+    <!-- 过滤器链定义 -->
+    <bean id="filterChainBuilder" class="org.apache.mina.core.filterchain.DefaultIoFilterChainBuilder">
+        <property name="filters">
+            <map>
+                <entry key="codecFilter" value-ref="protocolCodecFilter" />
+                <entry key="executorFilter" value-ref="executorFilter" />
+                <entry key="logger" value-ref="loggingFilter" />
+            </map>
+        </property>
+    </bean>
+
+    <!-- 执行过滤器 -->
+    <bean id="executorFilter" class="org.apache.mina.filter.executor.ExecutorFilter">
+        <!-- 业务逻辑线程池调用 -->
+        <constructor-arg ref="tpte4biz" />
+    </bean>
+    <!-- 执行多线程并发的Executor 处理业务逻辑线程池 -->
+    <bean id="tpte4biz"
+          class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+        <property name="queueCapacity" value="5000" />
+        <property name="corePoolSize" value="20" />
+        <property name="maxPoolSize" value="50" />
+        <property name="keepAliveSeconds" value="300" />
+    </bean>
+
+    <!-- 编码过滤器 -->
+    <bean id="protocolCodecFilter" class="org.apache.mina.filter.codec.ProtocolCodecFilter">
+        <constructor-arg ref="textLineCodecFactory" />
+    </bean>
+    <!-- 编码格式过滤器定义 -->
+    <bean id="textLineCodecFactory" class="org.apache.mina.filter.codec.textline.TextLineCodecFactory">
+        <constructor-arg index="0" value="UTF-8" />
+        <property name="decoderMaxLineLength" value="10240000"></property>
+        <property name="encoderMaxLineLength" value="10240000"></property>
+    </bean>
+    <!-- 自定义编码过滤器 -->
+    <bean id="myCodecFactory" class="com.wy.socket.codec.MyCodecFactory"/>
+    <!--日志过滤器 -->
+    <bean id="loggingFilter" class="com.wy.socket.filter.MyLogger"/>
+
+</beans>

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans  xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd  ">
+
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+        <!-- 基本属性 url、user、password -->
+        <property name="url" value="${jdbc-url}" />
+        <property name="username" value="${jdbc-username}" />
+        <property name="password" value="${jdbc-password}" />
+
+        <!-- 配置初始化大小、最小、最大 -->
+        <property name="initialSize" value="1" />
+        <property name="minIdle" value="1" />
+        <property name="maxActive" value="20" />
+
+        <!-- 配置获取连接等待超时的时间 -->
+        <property name="maxWait" value="60000" />
+
+        <!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+        <property name="timeBetweenEvictionRunsMillis" value="60000" />
+
+        <!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+        <property name="minEvictableIdleTimeMillis" value="300000" />
+
+        <property name="validationQuery" value="SELECT 'x'" />
+        <property name="testWhileIdle" value="true" />
+        <property name="testOnBorrow" value="false" />
+        <property name="testOnReturn" value="false" />
+
+        <!-- 打开PSCache，并且指定每个连接上PSCache的大小 ,Oracle建议为true，mysql建议为false-->
+        <property name="poolPreparedStatements" value="false" />
+        <property name="maxPoolPreparedStatementPerConnectionSize" value="20" />
+
+        <!-- 配置监控统计拦截的filters -->
+        <property name="filters" value="stat" />
+    </bean>
+
+
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="configLocation" value="classpath:mybatis.xml" />
+        <!-- 自动扫描entity目录 xml文件 -->
+        <property name="mapperLocations" value="classpath*:com/wy/springboot/persist/mapper/*.xml"></property>
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!-- 自动扫描 mybatis的接口 -->
+        <property name="basePackage" value="com.wy.springboot.persist.mapper"></property>
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"></property>
+    </bean>
+
+    <!-- 事务 -->
+    <bean id="txManager"
+          class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+    <!-- 配置事物的拦截方式 -->
+    <tx:advice id="transAdvice" transaction-manager="txManager">
+        <tx:attributes>
+            <tx:method name="find*" propagation="SUPPORTS" />
+            <tx:method name="get*" propagation="SUPPORTS" />
+            <tx:method name="select*" propagation="SUPPORTS" />
+            <tx:method name="query*" propagation="SUPPORTS" />
+            <!-- 以_NT结尾的方法不能设置事务 -->
+            <tx:method name="*_NT" propagation="SUPPORTS" />
+            <tx:method name="delete*" propagation="REQUIRED" />
+            <tx:method name="insert*" propagation="REQUIRED" />
+            <tx:method name="update*" propagation="REQUIRED" />
+            <tx:method name="add*" propagation="REQUIRED" />
+            <tx:method name="save*" propagation="REQUIRED" />
+            <tx:method name="modify*" propagation="REQUIRED" />
+        </tx:attributes>
+    </tx:advice>
+    <!-- 增加注解事务支持，注解优先级高于配置，特殊方法名请增加注解事务 -->
+    <tx:annotation-driven transaction-manager="txManager" />
+    <aop:config>
+        <!-- 事物配置扫描包 -->
+        <!-- 可选配置1（需要每个实现类名以ServiceImpl结束）：execution(* com.msds..*ServiceImpl.*(..)) -->
+        <!-- 可选配置2（需要每个实现类名在serviceImpl包下）：execution(* com.msds.*.serviceImpl.*.*(..)) -->
+        <aop:pointcut expression="execution(* com.wy.springboot.serviceImpl..*.*(..))"
+                      id="transcationPointcut2" />
+        <aop:advisor advice-ref="transAdvice" pointcut-ref="transcationPointcut2" />
+    </aop:config>
+</beans>
