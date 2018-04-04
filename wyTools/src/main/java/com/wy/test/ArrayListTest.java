@@ -1,6 +1,7 @@
 package com.wy.test;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 
 public class ArrayListTest {
@@ -19,6 +20,7 @@ public class ArrayListTest {
         list.remove(0);
         System.out.println("\n"+list.size());
         list.stream().forEach(e-> System.out.print(e));
+        new HashMap().containsKey("");
 
     }
 }

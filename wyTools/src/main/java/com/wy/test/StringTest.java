@@ -1,8 +1,6 @@
 package com.wy.test;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.math.BigDecimal;
 
 /**
  * 名称：  StringTest
@@ -13,6 +11,7 @@ import java.util.List;
 public class StringTest {
     public static void main(String[] args) {
 
+        /**
         List<String> list = Arrays.asList("0","x","a","3","6","5","4","1","2","y");
         list.forEach(e-> System.out.print(e));
         list.sort(new Comparator<String>() {
@@ -24,7 +23,6 @@ public class StringTest {
         System.out.println("\n"+("a".compareTo("a")>0));
         list.forEach(e-> System.out.print(e));
 
-        /**
         String nowDateStr = DateTimeUtils.getNowDateStr(DateTimeUtils.DATE_FORMAT_YYYYMMDD);
         String ftpPath = nowDateStr.substring(0,4)+ File.separatorChar+nowDateStr.substring(4,6)+File.separatorChar+nowDateStr.substring(6);
         System.out.println(ftpPath);
@@ -35,5 +33,17 @@ public class StringTest {
         System.out.println();
          */
 
+//    String info = "0024|9999004|100000000057|2200004568|1|52012119860826297X|大禹测试001||6226193300168004|10244|0|中国民生银行|110000|110000||BNK0001|0000|绑定成功";
+//        String[] message = info.split("\\|", -1);
+
+        String bankAmtStr_Value="\"(3,000.00)\"";
+        bankAmtStr_Value = bankAmtStr_Value.replace("\"","").replace("\'","").replace(",","");
+        if(bankAmtStr_Value.contains("(")){
+            bankAmtStr_Value = bankAmtStr_Value.replace("(","").replace(")","");
+            bankAmtStr_Value = "-"+bankAmtStr_Value;
+        }
+        System.out.println(bankAmtStr_Value);
+        System.out.println(new BigDecimal(bankAmtStr_Value));
     }
+
 }
