@@ -12,7 +12,6 @@ class SortValidation {
         fun validate(list: ArrayList<Long>):Boolean{
             for(i in list.indices){
                 if(i < list.size-1 && list[i] > list[i+1]){
-                    println(i)
                     return false
                 }
             }
