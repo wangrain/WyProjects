@@ -53,7 +53,7 @@ fun <T> listToArrayList (list: List<T>) :ArrayList<T>{
 
 fun main(args: Array<String>) {
 
-    val list =listToArrayList(Array(1000000, { SnowFlake.getId(Random().nextInt().toLong()) }).asList())
+    val list =listToArrayList(Array(100000, { SnowFlake.getId(Random().nextInt().toLong()) }).asList())
 //    val list = arrayListOf(-3291496448, 9165924150039621633, 9165924165898358786, 9165924179372584963, -553899446268, 9165924699732996101, 9165924196813336582, -2667028473, -591313469432, -4378206199)
 
     println("原list为" + (if (SortValidation.validate(list)) "有序的" else "无序的"))
